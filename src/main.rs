@@ -73,17 +73,17 @@ fn get_projects() -> Vec<Project> {
             tech: vec!["Rust".to_string(), "Rocket".to_string(), "Javascript".to_string(), "CSS".to_string(), "HTML".to_string()],
             repo: "zoa-sh".to_string(),
         },
-        Project {
+        /*Project {
             name: "Project 2".to_string(),
             description: "Description of Project 2".to_string(),
             tech: vec!["Python".to_string(), "Django".to_string(), "PostgreSQL".to_string()],
             repo: "project-2".to_string(),
-        },
+        },*/
     ]
 }
 
 #[get("/redirect/<repo>")]
-fn redirect(repo: String) -> Redirect {
+fn redirect(repo: &str) -> Redirect {
     let base_url = "https://git.zoa.sh/";
     Redirect::to(format!("{}{}.git", base_url, repo))
 }
@@ -171,7 +171,7 @@ fn format_element(element: &ElementRef, css_styles: &HashMap<String, String>, ou
             let header_color = "\x1b[38;2;139;92;246m"; // Purple color
             output.push_str(&format!("\n{}{}{}\x1b[1m{}\x1b[0m\n", indent, header_color, style, text));
         },
-        "p" | "blockquote" => {
+        "p" | "blockquote" | "dt" => {
             let text = element.text().collect::<String>().trim().to_string();
             if !text.is_empty() {
                 let formatting = if tag_name == "blockquote" { "\x1b[3m" } else { "" };
@@ -234,7 +234,9 @@ fn get_ansi_color(color: &str) -> String {
 
 #[get("/text")]
 fn text_version(state: &State<AppState>) -> RawText<String> {
+    let projects = get_projects();
     let context = context! {
+        projects: projects,
         // text based parsing includes
     };
 
