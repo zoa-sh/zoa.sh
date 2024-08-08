@@ -423,3 +423,13 @@ form button:hover {
   margin-right: 0.5rem;
   font-size: 1.2em;
 }
+
+.project-item.hidden {
+  display: none;
+}
+
+#showMoreProjects {
+  display: block;
+  margin: 0 auto;
+}
+
