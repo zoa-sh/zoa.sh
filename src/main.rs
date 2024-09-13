@@ -2,12 +2,14 @@
 
 use css_minify::optimizations::{Level, Minifier};
 use rocket::fs::{FileServer, relative};
-use rocket::http::Header;
+use rocket::http::{Header, Status};
 use rocket::{Request, Response};
 use rocket::fairing::{Fairing, Info, Kind};
 use rocket_dyn_templates::{Template, context};
 use rocket::response::Redirect;
+use rocket::request::{Outcome, FromRequest};
 use serde::Serialize;
+use std::net::IpAddr;
 use std::fs;
 use std::sync::Arc;
 use rocket::State;
@@ -128,6 +130,26 @@ fn generate_stars(count: usize) -> String {
         let y = rng.gen_range(0..100);
         format!(r#"<div class="star" style="left:{}%; top:{}%;"></div>"#, x, y)
     }).collect()
+}
+
+// zoa.sh/ip
+struct ClientIp(IpAddr);
+
+#[rocket::async_trait]
+impl<'r> FromRequest<'r> for ClientIp {
+    type Error = ();
+
+    async fn from_request(request: &'r rocket::Request<'_>) -> Outcome<Self, Self::Error> {
+        match request.client_ip() {
+            Some(ip) => Outcome::Success(ClientIp(ip)),
+            None => Outcome::Error((Status::InternalServerError, ())),
+        }
+    }
+}
+// move this to /net/ip later when u finish the nettools
+#[get("/ip")]
+fn ip(client_ip: ClientIp) -> String {
+    format!("IP Address: {}", client_ip.0)
 }
 
 
@@ -279,7 +301,12 @@ impl Fairing for UserAgentFairing {
     async fn on_request(&self, request: &mut Request<'_>, _: &mut Data<'_>) {
         if let Some(user_agent) = request.headers().get_one("User-Agent") {
             if user_agent.contains("curl") {
-                request.set_uri(request.uri().map_path(|_| "/text").unwrap());
+                let path = request.uri().path(); // we need to modify this to parse /text for paths
+                if path == "/" {
+                    request.set_uri(request.uri().map_path(|_| "/text").unwrap());
+                } else if path == "/ip" {
+                    request.set_uri(request.uri().map_path(|_| "/ip").unwrap());
+                }
             }
         }
     }
@@ -295,7 +322,7 @@ fn rocket() -> _ {
         .manage(app_state)
         .attach(Cacher)
         .attach(UserAgentFairing)
-        .mount("/", routes![index, redirect, text_version])
+        .mount("/", routes![index, redirect, text_version, ip])
         .mount("/static", FileServer::from(relative!("static")))
         .attach(Template::custom(|engines| {
             engines.handlebars.register_helper(
