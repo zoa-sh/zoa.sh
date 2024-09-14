@@ -12,10 +12,21 @@ use crate::context;
 use crate::get_projects;
 
 // curl zoa.sh
-// MODIFY THIS FOR AUTO PARSING AND ADD COLORS
+//convert CSS color to ANSI color code
+fn css_color_to_ansi(color: &str) -> String {
+    if let Ok(parsed_color) = Color::from_html(color) {
+        let rgba = parsed_color.to_rgba8();
+        format!("\x1b[38;2;{};{};{}m", rgba[0], rgba[1], rgba[2])
+    } else {
+        // Default to light gray if color parsing fails
+        "\x1b[38;2;200;200;200m".to_string()
+    }
+}
+
+// Improved CSS parser
 fn parse_css(css_content: &str) -> HashMap<String, String> {
     let mut styles = HashMap::new();
-    let re = Regex::new(r"(\.\w+|\w+)\s*\{([^}]+)\}").unwrap();
+    let re = Regex::new(r"((?:\.|#|\w+)(?:[.#]\w+)*)\s*\{([^}]+)\}").unwrap();
     for cap in re.captures_iter(css_content) {
         let selector = cap[1].to_string();
         let properties = cap[2].to_string();
@@ -24,11 +35,11 @@ fn parse_css(css_content: &str) -> HashMap<String, String> {
             .and_then(|prop| prop.split(':').nth(1))
             .map(|c| c.trim().to_string())
         {
-            styles.insert(selector, color);
+            styles.insert(selector, css_color_to_ansi(&color));
         }
     }
-    // Add default text color for elements that don't have a specific color
-    styles.insert("default".to_string(), "#32CD32".to_string());
+    // Add default text color
+    styles.insert("default".to_string(), css_color_to_ansi("#00ff00"));
     styles
 }
 
@@ -50,12 +61,11 @@ fn format_element(element: &ElementRef, css_styles: &HashMap<String, String>, ou
     let style = element.value().attr("class")
         .and_then(|class| css_styles.get(&format!(".{}", class)))
         .or_else(|| css_styles.get(tag_name))
-        .map(|color| get_ansi_color(color))
-        .unwrap_or_default();
+        .unwrap_or_else(|| css_styles.get("default").unwrap());
 
     let indent = "  ".repeat(depth);
 
-    match tag_name { // possibly need stacking formats 
+    match tag_name {
         "h1" | "h2" | "h3" | "h4" | "h5" | "h6" => {
             let text = element.text().collect::<String>().trim().to_string();
             let header_color = "\x1b[38;2;139;92;246m"; // Purple color
@@ -104,21 +114,6 @@ fn format_element(element: &ElementRef, css_styles: &HashMap<String, String>, ou
                 }
             }
         }
-    }
-}
-
-fn get_ansi_color(color: &str) -> String {
-    if let Ok(parsed_color) = Color::from_html(color) {
-        let rgba = parsed_color.to_rgba8();
-        if rgba[0] == 0 && rgba[1] == 0 && rgba[2] == 0 {
-            // If the color is black, use light gray instead
-            "\x1b[38;2;200;200;200m".to_string()
-        } else {
-            format!("\x1b[38;2;{};{};{}m", rgba[0], rgba[1], rgba[2])
-        }
-    } else {
-        // Default to light gray if color parsing fails
-        "\x1b[38;2;200;200;200m".to_string()
     }
 }
 

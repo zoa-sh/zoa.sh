@@ -95,15 +95,30 @@ section, .card {
     text-shadow: 0 0 5px rgba(0,0,0,0.5); /* Text shadow for better readability */
 }
 
-/* Adjust header colors for better visibility */
+
+/* Additional styles to catch any headings that might be missed */
+h1, h2, h3 {
+    color: #8B5CF6; /* Purple headers */
+}
+
+
+h1, h2, h3, h4, h5, h6,
 .card h1, .card h2, .card h3, .card h4, .card h5, .card h6 {
     color: #8B5CF6; /* Purple color for headers */
     text-shadow: 0 0 5px rgba(139,92,246,0.5);
 }
 
-/* Additional styles for better readability */
-h1, h2, h3 {
-    color: #8B5CF6; /* Purple headers */
+
+/* Specific style for the main title, if it's outside a .card */
+body > header h1 {
+    color: #8B5CF6;
+    text-shadow: 0 0 5px rgba(139,92,246,0.5);
+}
+
+/* Specific style for the 'whoami' section, adjust the selector as needed */
+section h2 {
+    color: #8B5CF6;
+    text-shadow: 0 0 5px rgba(139,92,246,0.5);
 }
 
 a {
