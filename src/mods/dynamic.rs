@@ -9,9 +9,11 @@ pub fn generate_stars(count: usize) -> String {
     for _ in 0..count {
         let x = rng.gen_range(0..100);
         let y = rng.gen_range(0..100);
-        stars.push_str(&format!(r#"<div class="star" style="left:{}%; top:{}%;"></div>"#, x, y));
+        stars.push_str(&format!(
+            r#"<div class="star" style="left:{}%; top:{}%;"></div>"#,
+            x, y
+        ));
     }
 
     stars
 }
-
