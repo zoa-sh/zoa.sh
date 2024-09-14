@@ -1,8 +1,7 @@
 // PATH: src/mods/net.rs
 use rocket::http::Status;
+use rocket::request::{FromRequest, Outcome};
 use std::net::IpAddr;
-use rocket::request::{Outcome, FromRequest};
-
 
 // Network tools
 pub struct ClientIp(IpAddr);

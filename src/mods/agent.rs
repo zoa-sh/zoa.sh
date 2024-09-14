@@ -1,8 +1,7 @@
 // PATH: src/mods/agent.rs
-use rocket::Data;
 use rocket::fairing::{Fairing, Info, Kind};
+use rocket::Data;
 use rocket::Request;
-
 
 pub struct UserAgentFairing;
 

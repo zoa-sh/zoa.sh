@@ -1,15 +1,15 @@
 // PATH: src/mods/text.rs
-use rocket::response::content::RawText;
-use scraper::{Html, Selector, ElementRef};
 use csscolorparser::Color;
-use std::collections::HashMap;
 use regex::Regex;
+use rocket::response::content::RawText;
+use scraper::{ElementRef, Html, Selector};
+use std::collections::HashMap;
 use std::fs;
 
-use rocket::State;
-use crate::AppState;
 use crate::context;
 use crate::get_projects;
+use crate::AppState;
+use rocket::State;
 
 // curl zoa.sh
 //convert CSS color to ANSI color code
@@ -23,14 +23,15 @@ fn css_color_to_ansi(color: &str) -> String {
     }
 }
 
-// Improved CSS parser
+// CSS parser
 fn parse_css(css_content: &str) -> HashMap<String, String> {
     let mut styles = HashMap::new();
     let re = Regex::new(r"((?:\.|#|\w+)(?:[.#]\w+)*)\s*\{([^}]+)\}").unwrap();
     for cap in re.captures_iter(css_content) {
         let selector = cap[1].to_string();
         let properties = cap[2].to_string();
-        if let Some(color) = properties.split(';')
+        if let Some(color) = properties
+            .split(';')
             .find(|prop| prop.contains("color:"))
             .and_then(|prop| prop.split(':').nth(1))
             .map(|c| c.trim().to_string())
@@ -47,18 +48,25 @@ fn html_to_formatted_text(html: &str, css_styles: &HashMap<String, String>) -> S
     let document = Html::parse_document(html);
     let mut formatted_text = String::new();
     let body_selector = Selector::parse("body").unwrap();
-    
+
     if let Some(body) = document.select(&body_selector).next() {
         format_element(&body, css_styles, &mut formatted_text, 0);
     }
-    
-    formatted_text
-} 
 
-fn format_element(element: &ElementRef, css_styles: &HashMap<String, String>, output: &mut String, depth: usize) {
+    formatted_text
+}
+
+fn format_element(
+    element: &ElementRef,
+    css_styles: &HashMap<String, String>,
+    output: &mut String,
+    depth: usize,
+) {
     let tag_name = element.value().name();
-    
-    let style = element.value().attr("class")
+
+    let style = element
+        .value()
+        .attr("class")
         .and_then(|class| css_styles.get(&format!(".{}", class)))
         .or_else(|| css_styles.get(tag_name))
         .unwrap_or_else(|| css_styles.get("default").unwrap());
@@ -69,15 +77,25 @@ fn format_element(element: &ElementRef, css_styles: &HashMap<String, String>, ou
         "h1" | "h2" | "h3" | "h4" | "h5" | "h6" => {
             let text = element.text().collect::<String>().trim().to_string();
             let header_color = "\x1b[38;2;139;92;246m"; // Purple color
-            output.push_str(&format!("\n{}{}{}\x1b[1m{}\x1b[0m\n", indent, header_color, style, text));
-        },
+            output.push_str(&format!(
+                "\n{}{}{}\x1b[1m{}\x1b[0m\n",
+                indent, header_color, style, text
+            ));
+        }
         "p" | "blockquote" | "dt" => {
             let text = element.text().collect::<String>().trim().to_string();
             if !text.is_empty() {
-                let formatting = if tag_name == "blockquote" { "\x1b[3m" } else { "" };
-                output.push_str(&format!("{}{}{}{}\x1b[0m\n", indent, style, formatting, text));
+                let formatting = if tag_name == "blockquote" {
+                    "\x1b[3m"
+                } else {
+                    ""
+                };
+                output.push_str(&format!(
+                    "{}{}{}{}\x1b[0m\n",
+                    indent, style, formatting, text
+                ));
             }
-        },
+        }
         "ul" | "ol" => {
             for child in element.children() {
                 if let Some(child) = ElementRef::wrap(child) {
@@ -89,7 +107,7 @@ fn format_element(element: &ElementRef, css_styles: &HashMap<String, String>, ou
                     }
                 }
             }
-        },
+        }
         "dd" => {
             if let Some(ul) = element.select(&Selector::parse("ul").unwrap()).next() {
                 for li in ul.select(&Selector::parse("li").unwrap()) {
@@ -100,13 +118,13 @@ fn format_element(element: &ElementRef, css_styles: &HashMap<String, String>, ou
                 let content = element.text().collect::<String>().trim().to_string();
                 output.push_str(&format!("{}{}  {}\x1b[0m\n", indent, style, content));
             }
-        },
+        }
         "a" => {
             let text = element.text().collect::<String>().trim().to_string();
             if !text.is_empty() {
                 output.push_str(&format!("{}{}\x1b[4m{}\x1b[0m", indent, style, text));
             }
-        },
+        }
         _ => {
             for child in element.children() {
                 if let Some(child) = ElementRef::wrap(child) {
@@ -131,11 +149,12 @@ pub fn text_version(state: &State<AppState>) -> RawText<String> {
     let mut reg = handlebars::Handlebars::new();
     reg.register_template_string("main_content", template_content)
         .expect("Failed to register template");
-    let html = reg.render("main_content", &context)
+    let html = reg
+        .render("main_content", &context)
         .expect("Failed to render template");
 
     let css_styles = parse_css(&state.minified_css);
     let formatted_text = html_to_formatted_text(&html, &css_styles);
-    
+
     RawText(formatted_text)
 }

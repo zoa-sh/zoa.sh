@@ -1,7 +1,7 @@
 // PATH: src/mods/cache.rs
+use rocket::fairing::{Fairing, Info, Kind};
 use rocket::http::Header;
 use rocket::{Request, Response};
-use rocket::fairing::{Fairing, Info, Kind};
 
 // Caching
 pub struct Cacher;
@@ -10,7 +10,7 @@ impl Fairing for Cacher {
     fn info(&self) -> Info {
         Info {
             name: "Cacher",
-            kind: Kind::Response
+            kind: Kind::Response,
         }
     }
 

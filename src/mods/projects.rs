@@ -17,13 +17,23 @@ pub fn get_projects() -> Vec<Project> {
         Project {
             name: "This site!".to_string(),
             description: "The site your looking at right now!".to_string(),
-            tech: vec!["Rust".to_string(), "Rocket".to_string(), "Javascript".to_string(), "CSS".to_string(), "HTML".to_string()],
+            tech: vec![
+                "Rust".to_string(),
+                "Rocket".to_string(),
+                "Javascript".to_string(),
+                "CSS".to_string(),
+                "HTML".to_string(),
+            ],
             repo: "zoa-sh".to_string(),
         },
         Project {
             name: "Project 2".to_string(),
             description: "Description of Project 2".to_string(),
-            tech: vec!["Python".to_string(), "Django".to_string(), "PostgreSQL".to_string()],
+            tech: vec![
+                "Python".to_string(),
+                "Django".to_string(),
+                "PostgreSQL".to_string(),
+            ],
             repo: "project-2".to_string(),
         },
         Project {

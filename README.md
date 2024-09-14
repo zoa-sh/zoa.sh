@@ -1,4 +1,5 @@
 # zoa.sh
+[![Rust CI/CD](https://github.com/zoa-sh/zoa.sh/actions/workflows/rust.yml/badge.svg)](https://github.com/zoa-sh/zoa.sh/actions/workflows/rust.yml)
 
 Welcome to my portfolio! This is a web application built with Rust using the Rocket framework.
 
