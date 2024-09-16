@@ -12,12 +12,6 @@
     <div>
       <h2>👾 ~$ whoami</h2>
       <p>
-        <!-- <span class="badge pronouns">Any Pronouns</span> 
-        <span class="badge non-binary">Non-Binary</span>
-        <span class="badge trans" data-text="Trans">Trans</span>
-        <span class="badge asn">🌐 AS214806</span> -->
-      </p>
-      <p>
         I'm a tech-savvy professional with expertise in computer science, programming, security, networking, engineering, and repair.
         <br>As an incredibly fast learner, I'm always looking to simplify, automate, and master new challenges and projects with an out-of-the-box mindset.
       </p>
@@ -206,7 +200,7 @@
       <h4>{{project.name}}</h4>
       <p>{{project.description}}</p>
       <p>Technologies: {{#each project.tech as |tech|}}{{tech}}{{#unless @last}}, {{/unless}}{{/each}}</p>
-      <a href="/redirect/{{project.repo}}" class="git-button"><i class="devicon-git-plain"></i>View on GIT</a>
+      <a href="/redirect/{{project.org}}/{{project.repo}}" class="git-button"><i class="devicon-git-plain"></i>View on GIT</a>
     </div>
     {{#if @last}}
       {{#if (gte @index 2)}}
